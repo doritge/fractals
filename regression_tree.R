@@ -2,7 +2,6 @@
 #
 # Regression fractal tree
 # Based on David Shiffman's The Code Train: Coding Challenge #14
-# testing changes
 #
 ###########################
 library(tidyverse)
