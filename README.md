@@ -4,4 +4,10 @@ Generating art using fractals
 ## Content
 
 **Tree**
-regression_tree.R - creating a tree using the recursive method
+recursive_tree.R - creating a tree using the recursive method
+
+**Animations**
+Based on the recursive tree built two animations
+
+* The growing tree
+* Starry starry night

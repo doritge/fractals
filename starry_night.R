@@ -1,9 +1,10 @@
 ############################
 #
-# Recurssive fractal tree
+# Animating the recurssive fractal tree - Starry starry night
 #
 ###########################
 library(tidyverse)
+library(gganimate)
 
 # Generate a right or left sub-branch
 sub_branch <- function(current,     # current branch
@@ -47,12 +48,12 @@ branch <- function(current,    # current branch
 ### generating the tree by using the regression function
 t_levels <- 12
 tree <- tibble(x = 100,
-                   y = 0,
-                   xend = 100,
-                   yend = 80,
-                   len = 80,
-                   angle = pi/2,
-                   level = 1) %>%
+               y = 0,
+               xend = 100,
+               yend = 80,
+               len = 80,
+               angle = pi/2,
+               level = 1) %>%
   branch(0.7, pi/6, t_levels)
 
 ### generating leaves at the last branches
@@ -60,14 +61,24 @@ cherries <- tree %>%
   filter(level == max(level)) %>%
   select(xend, yend)
 
+### generating stars
+stars_state <- tibble(x = sample(-70:420, 40), y = sample(280:390, 40))
+stars <- do.call("rbind", replicate(10, stars_state, simplify = FALSE)) %>%
+  mutate(x = jitter(x, amount = 0.5),
+         y = jitter(y, amount = 0.5),
+         state = rep(1:10, each = 40))
+
+
 ### Plotting
 p <- ggplot() +
-  geom_point(aes(x = 350, y = 320), size = 35, color = "#ffffe6") +        # moon
   geom_curve(data = tree,
              aes(x = x, y = y, xend = xend, yend = yend, size = 1/level),  # tree
              curvature = 0.03,
              color = "black") +
-  geom_point(data = cherries, aes(x = xend, y = yend), color = "#e62e00") +  # cherries
+  geom_point(data = cherries, aes(x = xend, y = yend),
+             color = "#e62e00") +                      # cherries
+  geom_point(data = stars, aes(x = x, y = y, group = interaction(x, state)),
+             size = 2, color = "#ffff66") +            # stars
   coord_equal() +
   scale_x_continuous(limit = c(-80, 430)) +
   scale_y_continuous(limit = c(0, 400)) +
@@ -78,5 +89,14 @@ p <- ggplot() +
         axis.ticks = element_blank(),
         axis.text = element_blank())
 
-ggsave(str_c("images/recursive_tree_", as.character(t_levels), ".png"),
-       p, height = 20, width = 20, units = "cm", dpi = 800)
+anim <- p +
+  transition_states(state, transition_length = 2, state_length = 1) +
+  ease_aes("sine-in-out") +
+  enter_recolor(color = "#ffff66") +
+  exit_recolor(color = "#ffffcc")
+
+animate(anim, renderer = magick_renderer(loop = TRUE), nframes = 150, fps = 25,
+        height = 400, width = 600)
+
+anim_save("images/stars_tree.gif", animattion = last_animation())  # default
+
